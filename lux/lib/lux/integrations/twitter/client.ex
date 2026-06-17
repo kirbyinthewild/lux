@@ -43,6 +43,15 @@ defmodule Lux.Integrations.Twitter.Client do
       {:ok, %{status: 401}} ->
         {:error, :unauthorized}
 
+      {:ok, %{status: 403, body: body}} ->
+        # Common for duplicate tweets
+        Logger.warning("Twitter API 403: #{inspect(body)}")
+        {:error, {:forbidden, body}}
+
+      {:ok, %{status: 429, body: body}} ->
+        Logger.warning("Twitter API Rate Limit: #{inspect(body)}")
+        {:error, {:rate_limit, body}}
+
       {:ok, %{status: status, body: body}} ->
         {:error, {status, body}}
 
